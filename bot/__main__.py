@@ -97,6 +97,10 @@ def bot_help(update, context):
 
 /{BotCommands.UnzipMirrorCommand} [download_url][magnet_link]: Starts mirroring and if downloaded file is any archive, extracts it to Google Drive
 
+/{BotCommands.UnzipPartsCommand} [download_url]: to Unzip multiple parts file in the same folder
+
+/{BotCommands.UnrarPartsCommand} [download_url]: to Unrar multiple parts file in the same folder
+
 /{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive
 
 /{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive Links
