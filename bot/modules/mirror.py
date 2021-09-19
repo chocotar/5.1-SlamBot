@@ -376,7 +376,7 @@ def _mirror(bot, update, isTar=False, extract=False, parts=False, unzipParts=Fal
     listener = MirrorListener(bot, update, pswd, isTar, extract, parts, unzipParts, unrarParts, isZip, isQbit)
 
     if bot_utils.is_gdrive_link(link):
-        if not isTar and not extract:
+        if not isTar and not extract and not parts:
             sendMessage(f"Use /{BotCommands.CloneCommand} to clone Google Drive file/folder\nUse /{BotCommands.TarMirrorCommand} to make tar of Google Drive folder\nUse /{BotCommands.UnzipMirrorCommand} to extracts archive Google Drive file", bot, update)
             return
         res, size, name, files = gdriveTools.GoogleDriveHelper().clonehelper(link)
