@@ -125,7 +125,11 @@ class MirrorListener(listeners.MirrorListeners):
                 if self.unzipParts:
                     archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
                 elif self.unrarParts:
-                    archive_result = runSh(f'unrar x "{m_path}" "{m_path}" '+passADD+' -o+', output=True)
+                    # archive_result = runSh(f'unrar x "{m_path}" "{m_path}" '+passADD+' -o+', output=True)
+                    LOGGER.info(f"Path: {path}")
+                    LOGGER.info(f"M_path: {m_path}")
+                    threading.Thread(target=os.remove, args=(m_path)).start()
+                    LOGGER.info(f"Deleting archive: {m_path}")
                 if archive_result == 0:
                     threading.Thread(target=os.remove, args=(m_path)).start()
                     LOGGER.info(f"Deleting archive: {m_path}")
