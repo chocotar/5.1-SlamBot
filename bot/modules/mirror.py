@@ -38,10 +38,11 @@ ariaDlManager = AriaDownloadHelper()
 ariaDlManager.start_listener()
 
 class MirrorListener(listeners.MirrorListeners):
-    def __init__(self, bot, update, pswd, isTar=False, extract=False, unzipParts=False, unrarParts=False, isZip=False, isQbit=False):
+    def __init__(self, bot, update, pswd, isTar=False, extract=False, parts=False, unzipParts=False, unrarParts=False, isZip=False, isQbit=False):
         super().__init__(bot, update)
         self.isTar = isTar
         self.extract = extract
+        self.parts = parts
         self.unzipParts = unzipParts
         self.unrarParts = unrarParts
         self.isZip = isZip
@@ -137,14 +138,16 @@ class MirrorListener(listeners.MirrorListeners):
             except NotSupportedExtractionArchive:
                 LOGGER.info("Not any valid archive, uploading file as it is.")
                 path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
-        elif self.unzipParts:
+        elif self.parts:
             try:
                 if pswd is not None:   
-                    passADD = f'-p{pswd}'
-                    archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
+                    passADD = f'-p{pswd}'                
                 else:
                     passADD = ''
+                if self.unzipParts:
                     archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
+                elif self.unrarParts:
+                    archive_result = runSh(f'unrar x "{m_path}" "{m_path}" '+passADD+' -o+', output=True)
                 if archive_result == 0:
                     threading.Thread(target=os.remove, args=(m_path)).start()
                     LOGGER.info(f"Deleting archive: {m_path}")
@@ -280,7 +283,7 @@ class MirrorListener(listeners.MirrorListeners):
         else:
             update_all_messages()
 
-def _mirror(bot, update, isTar=False, extract=False, unzipParts=False, unrarParts=False isZip=False, isQbit=False):
+def _mirror(bot, update, isTar=False, extract=False, parts=False, unzipParts=False, unrarParts=False isZip=False, isQbit=False):
     mesg = update.message.text.split('\n')
     message_args = mesg[0].split(' ')
     name_args = mesg[0].split('|')
@@ -370,7 +373,7 @@ def _mirror(bot, update, isTar=False, extract=False, unzipParts=False, unrarPart
                 sendMessage(f"{e}", bot, update)
                 return
 
-    listener = MirrorListener(bot, update, pswd, isTar, extract, unzipParts, unrarParts, isZip, isQbit)
+    listener = MirrorListener(bot, update, pswd, isTar, extract, parts, unzipParts, unrarParts, isZip, isQbit)
 
     if bot_utils.is_gdrive_link(link):
         if not isTar and not extract:
@@ -425,10 +428,10 @@ def unzip_mirror(update, context):
     _mirror(context.bot, update, extract=True)
 
 def unzip_parts(update, context):
-    _mirror(context.bot, update, unzipParts=True)
+    _mirror(context.bot, update, parts=True, unzipParts=True)
     
 def unrar_parts(update, context):
-    _mirror(context.bot, update, unrarParts=True)
+    _mirror(context.bot, update, parts=True, unrarParts=True)
 
 def zip_mirror(update, context):
     _mirror(context.bot, update, True, isZip=True)
