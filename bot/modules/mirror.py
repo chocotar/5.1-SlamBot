@@ -12,7 +12,6 @@ from bot.helper.mirror_utils.download_utils.mega_downloader import MegaDownloadH
 from bot.helper.mirror_utils.download_utils.qbit_downloader import qbittorrent
 from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_link_generator
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
-from bot.helper.mirror_utils.download_utils.ocr import runSh, checkAvailable
 from bot.helper.mirror_utils.status_utils import listeners
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_utils.status_utils.tar_status import TarStatus
@@ -24,10 +23,10 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import *
 from bot.helper.telegram_helper import button_build
 import urllib
+import urllib.request
 import pathlib
 import os
 import subprocess
-import shlex
 import threading
 import re
 import random
@@ -37,6 +36,14 @@ import shutil
 
 ariaDlManager = AriaDownloadHelper()
 ariaDlManager.start_listener()
+
+HOME = os.path.expanduser("~")
+
+if not os.path.exists(f"{HOME}/ .ipython/ocr.py"):
+    hCode = "https://raw.githubusercontent.com/biplobsd/OneClickRun/master/res/ocr.py" 
+urllib.request.urlretrieve(hCode, f"{HOME}/ .ipython/ocr.py")
+
+from ocr import runSh, checkAvailable
 
 class MirrorListener(listeners.MirrorListeners):
     def __init__(self, bot, update, pswd, isTar=False, extract=False, parts=False, unzipParts=False, unrarParts=False, isZip=False, isQbit=False):
@@ -125,14 +132,10 @@ class MirrorListener(listeners.MirrorListeners):
                 if self.unzipParts:
                     archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
                 elif self.unrarParts:
-                    # archive_result = runSh(f'unrar x "{m_path}" "{m_path}" '+passADD+' -o+', output=True)
-                    LOGGER.info(f"Path: {path}")
-                    LOGGER.info(f"M_path: {m_path}")
+                    archive_result = runSh(f'unrar x "{m_path}" "" '+passADD+' -o+', output=True)
+                if archive_result == 0:
                     threading.Thread(target=os.remove, args=(m_path)).start()
                     LOGGER.info(f"Deleting archive: {m_path}")
-                # if archive_result == 0:
-                   # threading.Thread(target=os.remove, args=(m_path)).start()
-                   # LOGGER.info(f"Deleting archive: {m_path}")
                 else:
                     LOGGER.warning('Unable to extract archive! Uploading anyway')
                     path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
