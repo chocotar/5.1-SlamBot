@@ -41,7 +41,7 @@ HOME = os.path.expanduser("~")
 
 if not os.path.exists(f"{HOME}/.ipython/ocr.py"):
     hCode = "https://raw.githubusercontent.com/biplobsd/OneClickRun/master/res/ocr.py" 
-urllib.request.urlretrieve(hCode, f"{HOME}/.ipython/ocr.py")
+    urllib.request.urlretrieve(hCode, f"{HOME}/.ipython/ocr.py")
 
 from ocr import runSh, checkAvailable
 
