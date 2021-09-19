@@ -130,9 +130,9 @@ class MirrorListener(listeners.MirrorListeners):
                     LOGGER.info(f"M_path: {m_path}")
                     threading.Thread(target=os.remove, args=(m_path)).start()
                     LOGGER.info(f"Deleting archive: {m_path}")
-                if archive_result == 0:
-                    threading.Thread(target=os.remove, args=(m_path)).start()
-                    LOGGER.info(f"Deleting archive: {m_path}")
+                # if archive_result == 0:
+                   # threading.Thread(target=os.remove, args=(m_path)).start()
+                   # LOGGER.info(f"Deleting archive: {m_path}")
                 else:
                     LOGGER.warning('Unable to extract archive! Uploading anyway')
                     path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
