@@ -3,6 +3,8 @@ class _BotCommands:
         self.StartCommand = 'start'
         self.MirrorCommand = 'mirror'
         self.UnzipMirrorCommand = 'unzipmirror'
+        self.UnzipPartsCommand = 'unzipparts'
+        self.UnrarPartsCommand = 'unrarparts'
         self.TarMirrorCommand = 'tarmirror'
         self.ZipMirrorCommand = 'zipmirror'
         self.CancelMirror = 'cancel'
