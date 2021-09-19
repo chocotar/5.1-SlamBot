@@ -140,6 +140,11 @@ class MirrorListener(listeners.MirrorListeners):
                 path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
         elif self.parts:
             try:
+                path = fs_utils.get_base_name(m_path)
+                LOGGER.info(f"Extracting: {name}")
+                with download_dict_lock:
+                    download_dict[self.uid] = ExtractStatus(name, m_path, size)
+                pswd = self.pswd
                 if pswd is not None:   
                     passADD = f'-p{pswd}'                
                 else:
