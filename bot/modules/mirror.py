@@ -26,6 +26,7 @@ import urllib
 import pathlib
 import os
 import subprocess
+import shlex
 import threading
 import re
 import random
@@ -37,10 +38,12 @@ ariaDlManager = AriaDownloadHelper()
 ariaDlManager.start_listener()
 
 class MirrorListener(listeners.MirrorListeners):
-    def __init__(self, bot, update, pswd, isTar=False, extract=False, isZip=False, isQbit=False):
+    def __init__(self, bot, update, pswd, isTar=False, extract=False, unzipParts=False, unrarParts=False, isZip=False, isQbit=False):
         super().__init__(bot, update)
         self.isTar = isTar
         self.extract = extract
+        self.unzipParts = unzipParts
+        self.unrarParts = unrarParts
         self.isZip = isZip
         self.isQbit = isQbit
         self.pswd = pswd
@@ -60,6 +63,34 @@ class MirrorListener(listeners.MirrorListeners):
             delete_all_messages()
         except IndexError:
             pass
+        
+    def runSh(args, *, output=False, shell=False, cd=None):
+        if not shell:
+            if output:
+                proc = subprocess.Popen(
+                    shlex.split(args), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cd
+                )
+                while True:
+                    output = proc.stdout.readline()
+                    if output == b"" and proc.poll() is not None:
+                        return
+                    if output:
+                        print(output.decode("utf-8").strip())
+            return subprocess.run(shlex.split(args), cwd=cd).returncode
+        else:
+            if output:
+                return (
+                    subprocess.run(
+                        args,
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        cwd=cd,
+                    )
+                    .stdout.decode("utf-8")
+                    .strip()
+                )
+            return subprocess.run(args, shell=True, cwd=cd).returncode
 
     def onDownloadComplete(self):
         with download_dict_lock:
@@ -103,6 +134,25 @@ class MirrorListener(listeners.MirrorListeners):
                     path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
                 LOGGER.info(f'got path: {path}')
 
+            except NotSupportedExtractionArchive:
+                LOGGER.info("Not any valid archive, uploading file as it is.")
+                path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
+        elif self.unzipParts:
+            try:
+                if pswd is not None:   
+                    passADD = f'-p{pswd}'
+                    archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
+                else:
+                    passADD = ''
+                    archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
+                if archive_result == 0:
+                    threading.Thread(target=os.remove, args=(m_path)).start()
+                    LOGGER.info(f"Deleting archive: {m_path}")
+                else:
+                    LOGGER.warning('Unable to extract archive! Uploading anyway')
+                    path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
+                LOGGER.info(f'got path: {path}')
+                
             except NotSupportedExtractionArchive:
                 LOGGER.info("Not any valid archive, uploading file as it is.")
                 path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
@@ -230,7 +280,7 @@ class MirrorListener(listeners.MirrorListeners):
         else:
             update_all_messages()
 
-def _mirror(bot, update, isTar=False, extract=False, isZip=False, isQbit=False):
+def _mirror(bot, update, isTar=False, extract=False, unzipParts=False, unrarParts=False isZip=False, isQbit=False):
     mesg = update.message.text.split('\n')
     message_args = mesg[0].split(' ')
     name_args = mesg[0].split('|')
@@ -320,7 +370,7 @@ def _mirror(bot, update, isTar=False, extract=False, isZip=False, isQbit=False):
                 sendMessage(f"{e}", bot, update)
                 return
 
-    listener = MirrorListener(bot, update, pswd, isTar, extract, isZip, isQbit)
+    listener = MirrorListener(bot, update, pswd, isTar, extract, unzipParts, unrarParts, isZip, isQbit)
 
     if bot_utils.is_gdrive_link(link):
         if not isTar and not extract:
@@ -368,13 +418,17 @@ def _mirror(bot, update, isTar=False, extract=False, isZip=False, isQbit=False):
 def mirror(update, context):
     _mirror(context.bot, update)
 
-
 def tar_mirror(update, context):
     _mirror(context.bot, update, True)
 
-
 def unzip_mirror(update, context):
     _mirror(context.bot, update, extract=True)
+
+def unzip_parts(update, context):
+    _mirror(context.bot, update, unzipParts=True)
+    
+def unrar_parts(update, context):
+    _mirror(context.bot, update, unrarParts=True)
 
 def zip_mirror(update, context):
     _mirror(context.bot, update, True, isZip=True)
@@ -385,9 +439,15 @@ tar_mirror_handler = CommandHandler(BotCommands.TarMirrorCommand, tar_mirror,
                                     filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 unzip_mirror_handler = CommandHandler(BotCommands.UnzipMirrorCommand, unzip_mirror,
                                       filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+unzip_parts_handler = CommandHandler(BotCommands.UnzipPartsCommand, unzip_parts,
+                                      filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+unrar_parts_handler = CommandHandler(BotCommands.UnrarPartsCommand, unrar_parts,
+                                      filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 zip_mirror_handler = CommandHandler(BotCommands.ZipMirrorCommand, zip_mirror,
                                     filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(mirror_handler)
 dispatcher.add_handler(tar_mirror_handler)
 dispatcher.add_handler(unzip_mirror_handler)
+dispatcher.add_handler(unzip_parts_handler)
+dispatcher.add_handler(unrar_parts_handler)
 dispatcher.add_handler(zip_mirror_handler)
