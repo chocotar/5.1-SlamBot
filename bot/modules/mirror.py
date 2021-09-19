@@ -12,6 +12,7 @@ from bot.helper.mirror_utils.download_utils.mega_downloader import MegaDownloadH
 from bot.helper.mirror_utils.download_utils.qbit_downloader import qbittorrent
 from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_link_generator
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
+from bot.helper.mirror_utils.download_utils.ocr import runSh, checkAvailable
 from bot.helper.mirror_utils.status_utils import listeners
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_utils.status_utils.tar_status import TarStatus
@@ -36,14 +37,6 @@ import shutil
 
 ariaDlManager = AriaDownloadHelper()
 ariaDlManager.start_listener()
-
-HOME = os.path.expanduser("~")
-
-if not os.path.exists(f"{HOME}/.ipython/ocr.py"):
-    hCode = "https://raw.githubusercontent.com/biplobsd/OneClickRun/master/res/ocr.py" 
-    urllib.request.urlretrieve(hCode, f"{HOME}/.ipython/ocr.py")
-
-from ocr import runSh, checkAvailable
 
 class MirrorListener(listeners.MirrorListeners):
     def __init__(self, bot, update, pswd, isTar=False, extract=False, parts=False, unzipParts=False, unrarParts=False, isZip=False, isQbit=False):
