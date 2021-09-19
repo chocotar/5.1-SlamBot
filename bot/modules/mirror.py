@@ -12,6 +12,7 @@ from bot.helper.mirror_utils.download_utils.mega_downloader import MegaDownloadH
 from bot.helper.mirror_utils.download_utils.qbit_downloader import qbittorrent
 from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_link_generator
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
+from bot.helper.mirror_utils.download_utils.ocr import runSh, checkAvailable
 from bot.helper.mirror_utils.status_utils import listeners
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_utils.status_utils.tar_status import TarStatus
@@ -65,34 +66,6 @@ class MirrorListener(listeners.MirrorListeners):
         except IndexError:
             pass
         
-    def runSh(args, *, output=False, shell=False, cd=None):
-        if not shell:
-            if output:
-                proc = subprocess.Popen(
-                    shlex.split(args), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cd
-                )
-                while True:
-                    output = proc.stdout.readline()
-                    if output == b"" and proc.poll() is not None:
-                        return
-                    if output:
-                        print(output.decode("utf-8").strip())
-            return subprocess.run(shlex.split(args), cwd=cd).returncode
-        else:
-            if output:
-                return (
-                    subprocess.run(
-                        args,
-                        shell=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        cwd=cd,
-                    )
-                    .stdout.decode("utf-8")
-                    .strip()
-                )
-            return subprocess.run(args, shell=True, cwd=cd).returncode
-
     def onDownloadComplete(self):
         with download_dict_lock:
             LOGGER.info(f"Download completed: {download_dict[self.uid].name()}")
