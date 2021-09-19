@@ -3,6 +3,7 @@ anytree
 aria2p
 appdirs
 attrdict
+unrar
 beautifulsoup4
 cloudscrape
 feedparser
