@@ -119,13 +119,13 @@ class MirrorListener(listeners.MirrorListeners):
                     download_dict[self.uid] = ExtractStatus(name, m_path, size)
                 pswd = self.pswd
                 if pswd is not None:   
-                    passADD = f'-p{pswd}'                
+                    passADD = f'-P {pswd}'                
                 else:
                     passADD = ''
                 if self.unzipParts:
                     archive_result = runSh('unzip '+passADD+f' "{m_path}" -d "{m_path}"', output=True)
                 elif self.unrarParts:
-                    archive_result = runSh(f'unrar x "{m_path}" "" '+passADD+' -o+', output=True)
+                    archive_result = runSh(f'/usr/local/lib/python3.6/dist-packages/unrar x "{m_path}" "" '+passADD+' -o+', output=True)
                 if archive_result == 0:
                     threading.Thread(target=os.remove, args=(m_path)).start()
                     LOGGER.info(f"Deleting archive: {m_path}")
