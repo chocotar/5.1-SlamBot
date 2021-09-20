@@ -3,6 +3,7 @@ from sys import exit as exx
 import time
 import uuid
 import re
+import unrar
 from subprocess import Popen,PIPE
 
 HOME = os.path.expanduser("~")
