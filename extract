@@ -59,7 +59,7 @@ extract() {
   *.rar)
     a_dir=$(expr "$arg" : '\(.*\).rar')
     mkdir "$a_dir"
-    7z x "$arg" -o"$a_dir"
+    unrar x "$arg" -o"$a_dir"
     local code=$?
     ;;
   *.iso)
